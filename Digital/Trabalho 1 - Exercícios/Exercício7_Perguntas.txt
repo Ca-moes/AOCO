@@ -1,0 +1,33 @@
+Q11. 
+ROM1:	Data Bits: 8
+	Address Bits: 6
+	2^6 * B
+	64B
+ROM2	Data Bits: 8
+	Address Bits: 5
+	2^5 * B
+	32B
+________________________________________________
+Q12.
+ROM1:	Address: 8 bits
+	6 bits menos significativos
+	000000 - 111111
+ChipSelect:
+	posição 6 e posição 7 ambos a 0
+R:	00000000 - 
+	00111111
+Descodificação Total
+------------------------------------------------
+ROM2:	Address: 8 bits
+	5 bits menos significativos
+	00000  -  11111
+ChipSelect:
+	posição 7 a 1; posição 6 a 0
+	10_00000 -
+	10_11111
+R:	10000000 -	10100000 -
+	10011111	10111111
+Descodificação Parcial
+___________________________________________________
+
+

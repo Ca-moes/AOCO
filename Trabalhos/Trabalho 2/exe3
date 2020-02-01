@@ -1,0 +1,97 @@
+Aux			DCD		0x7f800000, 0x007fffff, 0x7fffffff
+numA			DCD		0x42040000
+numB			DCD		0xc0380000
+			
+			ldr		R1, =numA					;Ler o valor A
+			ldr		R1, [R1]
+			ldr		R2, =numB					;Ler o valor B
+			ldr		R2, [R2]
+			bl		subtracao
+			END
+			
+sinal		lsr		R0, R0, #31				;Shift de 31 casas para a direita para ficar apenas com o sinal
+			mov		PC, LR					;Acabar a sub-rotina
+			
+expoentereal	lsl		R0, R0, #1				;Shift de 1 casa para esquerda para retirar o sinal
+			lsr		R0, R0, #24				;Shift de 24 casas para a esquerda para retirar a mantissa + um zero
+			sub		R0, R0, #127				;Subtrair 127 para ficar com o expoente real
+			mov		PC, LR					;Acabar a sub-rotina
+			
+mantissa		lsl		R0, R0, #9				;Shift de 9 casas para a esquerda para retirar o expoente + sinal
+			lsr		R0, R0, #9				;Shift de 9 casas para a direita para retirar os 9 zeros que ficaram
+			add		R0, R0, #0x800000			;Somar 0x800000
+			mov		PC, LR					;Acabar a sub-rotina
+			
+soma			mov		R13, LR					;Guardar o LR para poder acabar a subrotina
+			cmp		R1, #0					;Comparar A com 0
+			moveq	R0, R2					;Colocar o valor de B em R0 caso A seja 0
+			beq		fim						;Acabar a sub-rotina caso A seja 0
+			cmp		R2, #0
+			moveq	R0, R1
+			beq		fim
+			
+			mov		R0, R1
+			bl		sinal
+			mov		R3, R0					;Sinal de A -> R3
+			mov		R0, R2
+			bl		sinal
+			mov		R6, R0					;Sinal de B -> R6
+			
+			mov		R0, R1
+			bl		expoentereal
+			mov		R4, R0					;Expoente de A -> R4
+			mov		R0, R2
+			bl		expoentereal
+			mov		R7, R0					;Expoente de B -> R7
+			
+			mov		R0, R1
+			bl		mantissa
+			mov		R5, R0					;Mantissa de A -> R5
+			mov		R0, R2
+			bl		mantissa
+			mov		R8, R0					;Mantissa de B -> R8
+			
+			subs		R10, R4, R7				;Calcular a diferença entre os expoentes (ExpA - ExpB)
+			rsbmi	R10, R10, #0				;Se a subtração der negativo, inverter o valor
+			lsrmi	R5, R5, R10				;Se der negativo, A tem expoente menor logo vai dar um shift right
+			lsrpl	R8, R8, R10				;Se der positivo, B tem expoente menor logo vai dar um shift right
+			movmi	R9, R6					;Sinal é o sinal de B se B tem expoente maior
+			movmi	R10, R7					;Coloca o expoente maior em R10 (Exp B)
+			movpl	R9, R3					;Sinal é o sinal de A se A tem expoente maior
+			movpl	R10, R4					;Coloca o expoente maior em R10 (Exp A)
+			
+			cmp		R3, R6					;Comparar sinais
+			addeq	R11, R5, R8				;Se sinais forem iguais, somar as mantissas
+			beq		alinhar
+			cmp		R5, R8					;Se sinais forem diferentes, subtrair as mantissas
+			submi	R11, R8, R5
+			subpl	R11, R5, R8
+			
+alinhar		mov		R12, R11					;Colocar a mantissa em R11 e R12
+			lsr		R12, R12, #23				;Ficar só com a parte inteira em R12
+			cmp		R12, #1					;Comparar com 1
+			beq		fimsoma					;Se a parte inteira for 1 ja esta alinhada
+			submi	R10, R10, #1				;Se for 0, diminuir 1 ao expoente
+			lslmi	R11, R11, #1				;Se for 0, andar com a mantissa 1 casa para esquerda
+			bmi		alinhar					;Continuar este processo ate chegar ao 1 na parte inteira
+			add		R10, R10, #1				;Se for maior que 1, adicionar 1 ao expoente
+			lsr		R11, R11, #1				;Se for maior que 1, andar com a mantissa 1 casa para a direita
+			b		alinhar
+			
+fimsoma		lsl		R9, R9, #31				;Colocal o sinal em 32 bits
+			add		R10, R10, #127				;Colocar o expoente real em expoente de virgula flutuante
+			lsl		R10, R10, #23				;Colocar o expoente em 32 bits
+			add		R0, R9, R10
+			sub		R11, R11, #0x800000
+			add		R0, R0, R11
+			
+fim			mov		PC, R13					;Acabar a sub-rotina
+			
+subtracao		mov		R13, LR					;Guardar o LR para poder acabar a subrotina
+			mov		R0, R2
+			lsr		R0, R0, #31
+			cmp		R0, #0
+			addeq	R2, R2, #0x80000000
+			subne	R2, R2, #0x80000000
+			b		soma
+			

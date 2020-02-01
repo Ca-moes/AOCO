@@ -1,0 +1,40 @@
+(a) Indique o endereço de memória onde está guardado o tamanho da sequência seqA
+(tseqA).
+R: 0x11C
+
+(b) Qual é a posição de memória do 4o elemento da sequência seqA?
+R: 0x10C
+
+(c) Quantos bytes ocupa a sequência seqA em memória?
+R: 7 número (palavras), cada um vale por 4 bytes, logo 4 * 7 = 28 bytes
+
+(d) Quantas vezes é executada a instrução lsl R2, R2, #1? (Dica: Use breakpoints.)
+R: 7
+
+(e) Indique qual ou quais as linhas de código que alteram o valor do registo R1. (Dica:
+Consulte o histórico dos valores do registo.)
+R: Linhas 6 e 12
+ldr	R1, =seqA ; carrega endereço do primeiro elemento
+add	R1, R1, #4 ; atualiza endereço para ler próximo elemento
+
+(f) Indique quais são os valores de seqA após a execução do programa.
+R:	0x00000006
+	0xFFFFFFF6
+	0x0000002A
+	0x00000004
+	0xFFFFFFEC
+	0x00000064
+	0x00000012
+
+(g) Repita a alínea anterior após alterar o valor de tseqA para 3.
+R:	0x00000006
+	0xFFFFFFF6
+	0x0000002A	
+	0x00000002
+	0xFFFFFFF6
+	0x00000032
+	0x00000009
+
+(h) Se substituir a instrução lsl R2, R2, #1 por lsl R2, R2, #3, que funcionalidade
+adquire o programa?
+R: Multiplica o número por 8 em vez de por 2. 
